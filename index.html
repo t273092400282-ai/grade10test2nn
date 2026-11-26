@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار تقنية المعلومات التفاعلي - الصف العاشر | PyCharm Simulator</title>
+    
+    <!-- الخطوط العربية والبرمجية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- مكتبة Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبة Skulpt لتشغيل لغة Python داخل المتصفح -->
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+    
+    <!-- مكتبة html2pdf لتصدير التقرير بصيغة PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- مكتبة Lucide للأيقونات -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        code: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        pycharm: {
+                            bg: '#1e1f22',
+                            sidebar: '#2b2d30',
+                            header: '#2b2d30',
+                            border: '#393b40',
+                            gutter: '#26282e',
+                            text: '#bcbec4',
+                            green: '#499c54',
+                            blue: '#3574f0',
+                            yellow: '#e0bb65',
+                            purple: '#c77dbb',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #fdf4ff 0%, #f0f9ff 50%, #f0fdf4 100%);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        /* تنسيق محرر PyCharm مع حقول الإكمال المدمجة داخل أسطر الكود */
+        .pycharm-editor-wrapper {
+            position: relative;
+            display: flex;
+            background-color: #1e1f22;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 2.1;
+        }
+
+        .pycharm-gutter {
+            background-color: #26282e;
+            color: #6f737a;
+            padding: 14px 12px;
+            text-align: right;
+            user-select: none;
+            border-right: 1px solid #393b40;
+            min-width: 46px;
+            font-variant-numeric: tabular-nums;
+            line-height: 2.25;
+        }
+
+        .code-lines-container {
+            flex: 1;
+            padding: 14px 18px;
+            color: #bcbec4;
+            white-space: pre;
+            line-height: 2.25;
+        }
+
+        .code-line {
+            display: flex;
+            align-items: center;
+            min-height: 32px;
+            flex-wrap: nowrap;
+        }
+
+        /* تنسيق الحقل المخصص لكتابة المتعلمة داخل السطر البرمجي */
+        .code-slot-input {
+            display: inline-block;
+            background-color: #2b2d30;
+            color: #fde047;
+            border: 2px dashed #ec4899;
+            border-radius: 7px;
+            padding: 1px 8px;
+            margin: 0 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13.5px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.15);
+            text-align: center;
+        }
+
+        .code-slot-input::placeholder {
+            color: #94a3b8;
+            font-size: 11px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+        }
+
+        .code-slot-input:focus {
+            background-color: #171923;
+            border-style: solid;
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+        }
+
+        .code-slot-input.slot-correct {
+            border-style: solid;
+            border-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.18);
+            color: #6ee7b7;
+        }
+
+        .code-slot-input.slot-wrong {
+            border-style: solid;
+            border-color: #f43f5e;
+            background-color: rgba(244, 63, 94, 0.18);
+            color: #fda4af;
+        }
+
+        /* ألوان Syntax Highlighting مطابقة لثيم PyCharm */
+        .tok-kw { color: #cf8e6d; font-weight: 600; }
+        .tok-fn { color: #56a8f5; }
+        .tok-str { color: #6aab73; }
+        .tok-num { color: #2aacb8; }
+        .tok-com { color: #7a7e85; font-style: italic; }
+
+        .question-card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -10px rgba(139, 92, 246, 0.15);
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        @media print {
+            body { background: white !important; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="pb-16">
+
+    <!-- شريط التنقل العلوي المثبت -->
+    <nav class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-purple-100 shadow-sm no-print">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-400 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-md">
+                    <i data-lucide="terminal" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base sm:text-lg bg-gradient-to-l from-purple-700 via-pink-600 to-teal-600 bg-clip-text text-transparent">
+                        بيئة بايثون التفاعلية (PyCharm Web)
+                    </h1>
+                    <p class="text-xs text-slate-500 font-semibold">الصف العاشر - تقنية المعلومات | 14 سؤالاً (40 درجة)</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="hidden sm:flex items-center gap-2 bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-full text-xs font-bold text-purple-700">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>الأسئلة المجابة: <span id="nav-answered-count">0</span> / 14</span>
+                </div>
+                <button onclick="downloadHtmlActivity()" title="تحميل النشاط كملف HTML" class="bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                    <i data-lucide="code-2" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">تحميل HTML</span>
+                </button>
+                <button onclick="scrollToEvaluation()" class="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl shadow-md transition flex items-center gap-1.5">
+                    <i data-lucide="award" class="w-4 h-4"></i>
+                    <span>التقييم والنتيجة</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- الحاوية الرئيسية -->
+    <main class="max-w-5xl mx-auto px-4 pt-6 space-y-8">
+
+        <!-- الترويسة الرسمية وبيانات المتعلمة -->
+        <header class="bg-white rounded-3xl shadow-xl border-2 border-purple-100 overflow-hidden">
+            <div class="h-3 bg-gradient-to-r from-teal-400 via-purple-500 via-pink-500 to-amber-400"></div>
+            
+            <div class="p-6 sm:p-8">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 pb-6">
+                    <div class="text-center md:text-right space-y-1">
+                        <div class="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-extrabold mb-1 border border-teal-200">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            <span>وزارة التربية - دولة الكويت</span>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-extrabold text-slate-800">الإدارة العامة لمنطقة العاصمة التعليمية</h2>
+                        <p class="text-base font-bold text-purple-700">مركز اليرموك المشترك - لتعليم الكبار</p>
+                    </div>
+
+                    <div class="text-center bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 px-6 py-4 rounded-2xl border border-purple-200 shadow-inner">
+                        <h1 class="text-xl sm:text-2xl font-black text-slate-900">اختبار نهاية الفصل الدراسي الأول</h1>
+                        <p class="text-sm sm:text-base font-bold text-pink-600 mt-1">مادة تقنية المعلومات للصف العاشر (نموذج 1)</p>
+                        <div class="flex flex-wrap items-center justify-center gap-3 mt-2 text-xs font-bold text-slate-600">
+                            <span class="bg-white px-2.5 py-1 rounded-lg shadow-sm border border-slate-100">العام الدراسي: 2026 - 2027م</span>
+                            <span class="bg-white px-2.5 py-1 rounded-lg shadow-sm border border-purple-100 text-purple-700">إعداد المعلمة: هند الراشد</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- حقول إدخال بيانات المتعلمة -->
+                <div class="mt-6">
+                    <div class="flex items-center gap-2 mb-3 text-purple-800 font-extrabold text-sm">
+                        <i data-lucide="user-check" class="w-5 h-5 text-pink-500"></i>
+                        <span>بيانات المتعلمة (يرجى تعبئة البيانات بدقة قبل البدء):</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-gradient-to-b from-teal-50/70 to-white p-3 rounded-2xl border border-teal-200 focus-within:ring-2 focus-within:ring-teal-400 transition">
+                            <label for="student-name" class="block text-xs font-extrabold text-teal-800 mb-1">اسم المتعلمة الكامل *</label>
+                            <input type="text" id="student-name" placeholder="اكتبي اسمك الثلاثي هنا..." class="w-full bg-white border border-teal-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none">
+                        </div>
+                        <div class="bg-gradient-to-b from-purple-50/70 to-white p-3 rounded-2xl border border-purple-200 focus-within:ring-2 focus-within:ring-purple-400 transition">
+                            <label for="student-class" class="block text-xs font-extrabold text-purple-800 mb-1">الصف / الفصل *</label>
+                            <input type="text" id="student-class" placeholder="مثال: عاشر / 1" class="w-full bg-white border border-purple-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none">
+                        </div>
+                        <div class="bg-gradient-to-b from-pink-50/70 to-white p-3 rounded-2xl border border-pink-200 focus-within:ring-2 focus-within:ring-pink-400 transition">
+                            <label for="student-lab" class="block text-xs font-extrabold text-pink-800 mb-1">المختبر</label>
+                            <input type="text" id="student-lab" placeholder="مثال: مختبر الحاسوب 1" class="w-full bg-white border border-pink-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none">
+                        </div>
+                        <div class="bg-gradient-to-b from-amber-50/70 to-white p-3 rounded-2xl border border-amber-200 focus-within:ring-2 focus-within:ring-amber-400 transition">
+                            <label for="student-pc" class="block text-xs font-extrabold text-amber-800 mb-1">رقم الجهاز</label>
+                            <input type="text" id="student-pc" placeholder="مثال: 12" class="w-full bg-white border border-amber-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- بطاقة إرشادات سريعة -->
+        <div class="bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-sm no-print">
+            <div class="w-12 h-12 rounded-2xl bg-amber-400 text-white flex items-center justify-center shrink-0 shadow-md">
+                <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <div class="text-sm text-amber-950 space-y-1">
+                <p class="font-extrabold text-base">تعليمات الحل في بيئة PyCharm التفاعلية:</p>
+                <p class="font-medium leading-relaxed">
+                    اقرئي كل سؤال بعناية، ثم اكتبي الكلمة أو الرمز المطلوب في <span class="inline-block bg-pink-100 text-pink-800 border border-dashed border-pink-500 px-2 py-0.5 rounded font-bold text-xs">المربعات المخصصة للإكمال</span> داخل أسطر محرر <span class="font-code font-bold bg-amber-200/70 px-1.5 py-0.5 rounded text-amber-900">PyCharm</span>، واضغطي على زر التشغيل الأخضر <span class="inline-flex items-center gap-1 bg-emerald-600 text-white px-2 py-0.5 rounded text-xs font-bold">▶ تشغيل الكود</span> لمعاينة النتيجة. بعد الانتهاء اضغطي على <strong>"تقييم النشاط وحساب الدرجة"</strong>.
+                </p>
+            </div>
+        </div>
+
+        <!-- حاوية الأسئلة الـ 14 -->
+        <section id="questions-container" class="space-y-8"></section>
+
+        <!-- قسم التقييم النهائي، التصدير PDF، والإرسال للمعلمة -->
+        <section id="evaluation-section" class="bg-white rounded-3xl shadow-2xl border-2 border-purple-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 via-pink-500 to-teal-500 p-6 text-white text-center">
+                <h2 class="text-2xl sm:text-3xl font-black mb-2">التقييم النهائي وتسليم الاختبار</h2>
+                <p class="text-purple-100 text-sm sm:text-base font-semibold">اضغطي على زر التقييم لحساب درجتك من 40 درجة، ثم احفظي ملف الـ PDF وأرسليه لمعلمتك</p>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-6">
+                <div class="flex flex-wrap items-center justify-center gap-4 no-print">
+                    <button onclick="evaluateAllQuestions()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-base sm:text-lg px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition flex items-center gap-3">
+                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                        <span>تقييم النشاط وحساب الدرجة (40 درجة)</span>
+                    </button>
+
+                    <button id="btn-download-pdf" onclick="exportToPDF()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold text-base sm:text-lg px-7 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition flex items-center gap-3">
+                        <i data-lucide="file-down" class="w-6 h-6"></i>
+                        <span>حفظ التقرير كملف PDF</span>
+                    </button>
+
+                    <button id="btn-send-email" onclick="sendEmailToTeacher()" class="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-extrabold text-base sm:text-lg px-7 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition flex items-center gap-3">
+                        <i data-lucide="mail" class="w-6 h-6"></i>
+                        <span>إرسال النتيجة لبريد المعلمة</span>
+                    </button>
+
+                    <button onclick="downloadHtmlActivity()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-base px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition flex items-center gap-2.5">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        <span>تحميل نسخة HTML</span>
+                    </button>
+                </div>
+
+                <!-- تنبيه البريد الإلكتروني -->
+                <div class="bg-sky-50 border border-sky-200 rounded-2xl p-4 text-center text-sm text-sky-900 font-semibold">
+                    <p>بريد المعلمة هند الراشد المعتمد لاستلام الملفات: 
+                        <span class="font-code font-bold text-sky-700 bg-white px-2.5 py-1 rounded-lg border border-sky-200 select-all" dir="ltr">T273092400282@moe.edu.kw</span>
+                        <button onclick="copyTeacherEmail()" class="mr-2 text-xs bg-sky-600 hover:bg-sky-700 text-white px-2.5 py-1 rounded-lg transition">نسخ البريد</button>
+                    </p>
+                    <p class="text-xs text-sky-700 mt-1">ملاحظة: عند الضغط على زر حفظ التقرير كملف PDF سيتم تنزيل ملفك فوراً، تأكدي من إرفاقه في رسالة البريد الإلكتروني عند الإرسال.</p>
+                </div>
+
+                <!-- لوحة عرض النتيجة وجدول الدرجات (تظهر بعد التقييم) -->
+                <div id="results-dashboard" class="hidden space-y-6 pt-4 border-t-2 border-dashed border-purple-200">
+                    <div class="bg-gradient-to-br from-purple-50 via-pink-50 to-teal-50 rounded-3xl p-6 border-2 border-purple-200 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="space-y-1 text-center md:text-right">
+                            <span class="inline-block bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">بطاقة النتيجة النهائية</span>
+                            <h3 id="res-student-title" class="text-xl sm:text-2xl font-black text-slate-800 mt-1">المتعلمة: ---</h3>
+                            <p id="res-student-meta" class="text-sm font-bold text-slate-600">الصف: --- | المختبر: --- | الجهاز: ---</p>
+                            <p id="res-feedback-msg" class="text-sm font-extrabold text-teal-700 pt-1">أحسنتِ! بارك الله في جهودك.</p>
+                        </div>
+
+                        <div class="flex items-center gap-4 bg-white px-8 py-5 rounded-3xl shadow-md border-2 border-purple-100">
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-slate-400">الدرجة المستحقة</span>
+                                <div class="text-4xl sm:text-5xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                    <span id="total-earned-score">0</span><span class="text-2xl text-slate-400">/40</span>
+                                </div>
+                            </div>
+                            <div class="h-12 w-px bg-slate-200"></div>
+                            <div class="text-center">
+                                <span class="block text-xs font-extrabold text-slate-400">النسبة المئوية</span>
+                                <span id="total-percentage" class="text-2xl font-black text-teal-600">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- جدول التقييم التفصيلي -->
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+                        <table class="w-full text-right border-collapse bg-white text-sm">
+                            <thead>
+                                <tr class="bg-gradient-to-l from-purple-700 to-indigo-700 text-white font-extrabold">
+                                    <th class="p-3.5 border-b border-purple-600 text-center w-14">م</th>
+                                    <th class="p-3.5 border-b border-purple-600">البند / المهارة البرمجية</th>
+                                    <th class="p-3.5 border-b border-purple-600 text-center w-28">الدرجة الكلية</th>
+                                    <th class="p-3.5 border-b border-purple-600 text-center w-32">الدرجة المستحقة</th>
+                                    <th class="p-3.5 border-b border-purple-600 text-center w-48">حالة التقييم</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grades-table-body" class="divide-y divide-slate-100 font-semibold"></tbody>
+                            <tfoot>
+                                <tr class="bg-purple-50 font-black text-base text-purple-900 border-t-2 border-purple-200">
+                                    <td colspan="2" class="p-4 text-center">المجموع الكلي</td>
+                                    <td class="p-4 text-center">40</td>
+                                    <td id="table-total-earned" class="p-4 text-center text-pink-600 text-lg">0</td>
+                                    <td id="table-total-status" class="p-4 text-center text-teal-700">---</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- حاوية مخفية لتوليد ملف PDF احترافي وأنيق -->
+    <div id="pdf-export-wrapper" style="display: none;">
+        <div id="pdf-content" dir="rtl" style="font-family: 'Cairo', sans-serif; padding: 24px; color: #1e293b; background: #ffffff;">
+            <div style="border: 2px solid #7e22ce; border-radius: 16px; padding: 18px; margin-bottom: 20px; background: #faf5ff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e9d5ff; padding-bottom: 12px; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 800; color: #0d9488;">وزارة التربية - الإدارة العامة لمنطقة العاصمة التعليمية</div>
+                        <div style="font-size: 15px; font-weight: 900; color: #581c87;">مركز اليرموك المشترك - لتعليم الكبار</div>
+                        <div style="font-size: 12px; font-weight: 700; color: #475569;">إعداد المعلمة: هند الراشد</div>
+                    </div>
+                    <div style="text-align: left;">
+                        <div style="font-size: 16px; font-weight: 900; color: #1e293b;">اختبار نهاية الفصل الدراسي الأول</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #db2777;">مادة تقنية المعلومات - الصف العاشر (نموذج 1)</div>
+                        <div style="font-size: 12px; font-weight: 700; color: #64748b;">العام الدراسي: 2026 / 2027م</div>
+                    </div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-weight: 700;">
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #d8b4fe; background: #fff;">اسم المتعلمة: <span id="pdf-name" style="color: #6b21a8;"></span></td>
+                        <td style="padding: 6px; border: 1px solid #d8b4fe; background: #fff;">الصف: <span id="pdf-class" style="color: #6b21a8;"></span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #d8b4fe; background: #fff;">المختبر: <span id="pdf-lab"></span> | رقم الجهاز: <span id="pdf-pc"></span></td>
+                        <td style="padding: 6px; border: 1px solid #d8b4fe; background: #f3e8ff; font-size: 15px; font-weight: 900; color: #be185d;">الدرجة النهائية المستحقة: <span id="pdf-score"></span> / 40</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3 style="font-size: 15px; font-weight: 900; color: #581c87; margin-bottom: 8px;">أولاً: كشف الدرجات والتقييم</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 22px;">
+                <thead>
+                    <tr style="background: #6b21a8; color: #ffffff;">
+                        <th style="padding: 8px; border: 1px solid #581c87; width: 35px;">م</th>
+                        <th style="padding: 8px; border: 1px solid #581c87; text-align: right;">البند</th>
+                        <th style="padding: 8px; border: 1px solid #581c87; width: 70px;">الدرجة الكلية</th>
+                        <th style="padding: 8px; border: 1px solid #581c87; width: 85px;">المستحقة</th>
+                        <th style="padding: 8px; border: 1px solid #581c87; width: 110px;">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody id="pdf-grades-body"></tbody>
+            </table>
+
+            <h3 style="font-size: 15px; font-weight: 900; color: #581c87; margin-bottom: 8px;">ثانياً: التعليمات البرمجية المنفذة في بيئة PyCharm</h3>
+            <div id="pdf-code-details"></div>
+        </div>
+    </div>
+
+    <!-- نافذة الإشعارات المخصصة -->
+    <div id="toast-container" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- نافذة إدخال تفاعلية لدالة input() في بايثون -->
+    <div id="python-input-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl border-2 border-purple-200 max-w-md w-full p-6 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-pycharm-bg text-pycharm-green flex items-center justify-center font-code font-bold">&gt;_</div>
+                <div>
+                    <h4 class="font-extrabold text-slate-800">إدخال بيانات البرنامج (Python Input)</h4>
+                    <p id="python-input-prompt" class="text-xs font-code text-purple-700 font-semibold mt-0.5" dir="ltr">enter value:</p>
+                </div>
+            </div>
+            <input type="text" id="python-input-field" dir="ltr" class="w-full border-2 border-purple-300 focus:border-purple-600 rounded-xl px-4 py-2.5 font-code text-sm outline-none" placeholder="اكتبي القيمة هنا واضغطي Enter...">
+            <div class="flex justify-end gap-2">
+                <button id="python-input-submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm transition">إرسال القيمة (Enter)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. تعريف بيانات الأسئلة الـ 14 وأماكن الإكمال المخصصة
+        // ==========================================
+        const QUESTIONS = [
+            {
+                id: 1,
+                title: "افتحي ملف python",
+                rubricItem: "افتحي ملف python",
+                maxScore: 1,
+                fileName: "main.py",
+                isFileCreationTask: true,
+                badgeColor: "from-teal-500 to-emerald-500",
+                correctModel: "إنشاء وفتح ملف main.py",
+                hint: "اضغطي على زر إنشاء وفتح ملف main.py داخل محاكي PyCharm لبدء كتابة مشاريع البايثون."
+            },
+            {
+                id: 2,
+                title: "عيني اسم المتغير name وخصصي له قيمة هي اسمك",
+                rubricItem: "عيني اسم المتغير name وخصصي له قيمة هي اسمك",
+                maxScore: 3,
+                fileName: "question_2.py",
+                badgeColor: "from-purple-500 to-indigo-500",
+                lines: [
+                    "{{slot:s1|اسم المتغير|95}} = '{{slot:s2|اسم المتعلمة|145}}'",
+                    "print(name)"
+                ],
+                correctModel: "name = 'اسم المتعلمة'",
+                hint: "اكتبي name في المربع الأول، واسمك في المربع الثاني."
+            },
+            {
+                id: 3,
+                title: "قومي بجمع وضرب وقسمة المتغيرين a و b واطبعي النتيجة",
+                rubricItem: "اجمعي واقسمي واضربي المتغيرين a و b",
+                maxScore: 3,
+                fileName: "question_3.py",
+                badgeColor: "from-pink-500 to-rose-500",
+                lines: [
+                    "a = 9",
+                    "b = 3",
+                    "print(a {{slot:s1|الجمع +|75}} b)",
+                    "print(a {{slot:s2|الضرب *|75}} b)",
+                    "print(a {{slot:s3|القسمة /|75}} b)"
+                ],
+                correctModel: "print(a + b) ، print(a * b) ، print(a / b)",
+                hint: "اكتبي علامة الجمع (+) في المربع الأول، وعلامة الضرب (*) في الثاني، وعلامة القسمة (/) في الثالث."
+            },
+            {
+                id: 4,
+                title: "اطبعي الحرف الأول في اسم المتغير fruit باستخدام الفهرسة indexing",
+                rubricItem: "باستخدام الفهرسة indexing اطبعي الحرف الأول من اسم المتغير fruit",
+                maxScore: 3,
+                fileName: "question_4.py",
+                badgeColor: "from-amber-500 to-orange-500",
+                lines: [
+                    "fruit = 'BANANA'",
+                    "print(fruit[{{slot:s1|رقم الفهرس|85}}])"
+                ],
+                correctModel: "print(fruit[0])",
+                hint: "تبدأ الفهرسة indexing في لغة بايثون دائماً من الرقم 0 للحرف الأول."
+            },
+            {
+                id: 5,
+                title: "اطبعي طول السلسلة النصية Bug بعد استخراجه",
+                rubricItem: "أوجدي طول السلسلة النصية bug",
+                maxScore: 3,
+                fileName: "question_5.py",
+                badgeColor: "from-cyan-500 to-blue-500",
+                lines: [
+                    "Bug = 'butterfly'",
+                    "print({{slot:s1|دالة الطول والمتغير|155}})"
+                ],
+                correctModel: "print(len(Bug))",
+                hint: "اكتبي len(Bug) داخل المكان المخصص لحساب وطباعة عدد أحرف السلسلة."
+            },
+            {
+                id: 6,
+                title: "حولي حروف اسم المتغير mood إلى أحرف كبيرة باستخدام الدالة المناسبة",
+                rubricItem: "حولي حروف الاسم المتغير mood الى أحرف كبيرة باستخدام الدالة المناسبة",
+                maxScore: 3,
+                fileName: "question_6.py",
+                badgeColor: "from-fuchsia-500 to-purple-600",
+                lines: [
+                    "mood = 'happy'",
+                    "print(mood.{{slot:s1|اسم الدالة|100}}())"
+                ],
+                correctModel: "print(mood.upper())",
+                hint: "اكتبي upper في المكان المخصص لتصبح التعليمة mood.upper()."
+            },
+            {
+                id: 7,
+                title: "عيني شرط لشراء الفستان إذا كان سعره أقل من 12 أي price < 12",
+                rubricItem: "عيني شرط لشراء الفستان اذا كان سعره أقل من 12 أي price < 12",
+                maxScore: 3,
+                fileName: "question_7.py",
+                badgeColor: "from-emerald-500 to-teal-600",
+                lines: [
+                    "price = input('enter dress price:')",
+                    "price = float(price)",
+                    "{{slot:s1|الشرط: if price < 12|175}}:",
+                    "    print('i will buy the dress')",
+                    "else:",
+                    "    print('its too expensive')"
+                ],
+                correctModel: "if price < 12:",
+                hint: "اكتبي if price < 12 قبل النقطتين الرأسيتين (:)."
+            },
+            {
+                id: 8,
+                title: "عيني شرط ثاني بحيث إذا كانت الدرجة grade >= 90 يتم طباعة you are excellent",
+                rubricItem: "عيني شرط ثاني بحيث اذا كانت الدرجة grade >= 90 يتم طباعة you are excellent",
+                maxScore: 3,
+                fileName: "question_8.py",
+                badgeColor: "from-violet-500 to-purple-600",
+                lines: [
+                    "grade = float(input('enter your grade:'))",
+                    "if grade <= 50:",
+                    "    print('you fail')",
+                    "{{slot:s1|الشرط الثاني|95}} {{slot:s2|grade >= 90|135}}:",
+                    "    print('you are excellent')",
+                    "else:",
+                    "    print('good you pass')"
+                ],
+                correctModel: "elif grade >= 90:",
+                hint: "اكتبي elif في المربع الأول، و grade >= 90 في المربع الثاني."
+            },
+            {
+                id: 9,
+                title: "كرري طباعة الأعداد تنازلياً من 8 إلى 0 بينما a أكبر من 0 وأوقفي التكرار عند الرقم 4",
+                rubricItem: "كرري طباعة الأعداد تنازليا من 8 الى 0 بينما a أكبر من 0 وأوقفي التكرار عند الرقم 4",
+                maxScore: 3,
+                fileName: "question_9.py",
+                badgeColor: "from-rose-500 to-pink-600",
+                lines: [
+                    "a = 8",
+                    "{{slot:s1|أمر التكرار|100}} a > 0:",
+                    "    print(a)",
+                    "    if a == 4:",
+                    "        {{slot:s2|أمر الإيقاف|105}}",
+                    "    a = a - 1",
+                    "print('the end')"
+                ],
+                correctModel: "while a > 0: ... break",
+                hint: "اكتبي while في المربع الأول للتكرار، و break في المربع الثاني لإيقاف التكرار."
+            },
+            {
+                id: 10,
+                title: "باستخدام التكرار المتداخل اطبعي جدول ضرب العدد 5 للأرقام من 1 إلى 10",
+                rubricItem: "باستخدام التكرار المتداخل اطبعي جدول ضرب العدد 5 للأرقام من 1 الى 10",
+                maxScore: 3,
+                fileName: "question_10.py",
+                badgeColor: "from-orange-500 to-amber-600",
+                lines: [
+                    "b = 5",
+                    "while b <= {{slot:s1|العدد|75}}:",
+                    "    c = 1",
+                    "    while c <= {{slot:s2|النهاية|80}}:",
+                    "        print(f'{b}*{c}={b*c}')",
+                    "        c = c + 1",
+                    "    b = b + 1"
+                ],
+                correctModel: "while b <= 5: و while c <= 10:",
+                hint: "نريد جدول ضرب العدد 5 (اكتبي 5 في المربع الأول) للأرقام من 1 إلى 10 (اكتبي 10 في المربع الثاني)."
+            },
+            {
+                id: 11,
+                title: "أكملي جملة التكرار for لطباعة أحرف المتغير color على التوالي",
+                rubricItem: "أكملي جملة التكرار for لطباعة أحرف المتغير color على التوالي",
+                maxScore: 3,
+                fileName: "question_11.py",
+                badgeColor: "from-sky-500 to-indigo-600",
+                lines: [
+                    "color = 'red'",
+                    "for {{slot:s1|المتغير|80}} in {{slot:s2|السلسلة|95}}:",
+                    "    print(ch)"
+                ],
+                correctModel: "for ch in color:",
+                hint: "اكتبي ch في المربع الأول، واسم المتغير color في المربع الثاني."
+            },
+            {
+                id: 12,
+                title: "أكملي دالة النطاق range لطباعة الأرقام من 3 إلى 6 على التوالي",
+                rubricItem: "أكملي دالة النطاق range لطباعة الأرقام من 3 إلى 6 على التوالي",
+                maxScore: 3,
+                fileName: "question_12.py",
+                badgeColor: "from-teal-500 to-cyan-600",
+                lines: [
+                    "for n in {{slot:s1|اسم الدالة|95}}({{slot:s2|البداية|75}}, 7):",
+                    "    print(n)"
+                ],
+                correctModel: "for n in range(3, 7):",
+                hint: "اكتبي range في المربع الأول، و 3 في المربع الثاني (البداية)."
+            },
+            {
+                id: 13,
+                title: "اكتشفي الأخطاء في التعليمات البرمجية وأصلحيها",
+                rubricItem: "اكتشفي الأخطاء في التعليمات البرمجية وأصلحيها",
+                maxScore: 3,
+                fileName: "question_13.py",
+                badgeColor: "from-red-500 to-rose-600",
+                referenceWrongCode: "price = float(price)\nif price < 12\n    Print('i will buy the dress'",
+                lines: [
+                    "price = 10",
+                    "price = float(price)",
+                    "if price < 12{{slot:s1|نهاية الشرط :|105}}",
+                    "    {{slot:s2|دالة الطباعة|105}}('i will buy the dress'{{slot:s3|إغلاق القوس )|105}}"
+                ],
+                correctModel: "if price < 12: و print('i will buy the dress')",
+                hint: "أصلحي الأخطاء الثلاثة: ضعي النقطتين (:) بعد 12، واكتبي print بحرف صغير، وأغلقي القوس ) في النهاية."
+            },
+            {
+                id: 14,
+                title: "استخدمي تعليمة معالجة الخطأ مسبقاً لتجنبه واستخدام الاستثناءات فيما يلي:",
+                rubricItem: "استخدمي تعليمة معالجة الخطأ مسبقا لتجنبه واستخدام الاستثناءات",
+                maxScore: 3,
+                fileName: "question_14.py",
+                badgeColor: "from-indigo-500 to-purple-700",
+                lines: [
+                    "minute = input('enter number of minutes')",
+                    "{{slot:s1|بداية الفحص|105}}:",
+                    "    minute = int(minute)",
+                    "    hour = minute / 60",
+                    "    print(hour)",
+                    "{{slot:s2|معالجة الخطأ|125}}:",
+                    "    print('please enter number')"
+                ],
+                correctModel: "try: و except ValueError: (أو except:)",
+                hint: "اكتبي try في المربع الأول، و except ValueError (أو except) في المربع الثاني."
+            }
+        ];
+
+        // حالة التطبيق
+        const state = {
+            q1FileOpened: false,
+            q1CreatedFile: "",
+            slots: {},
+            codes: {},
+            outputs: {},
+            evaluationResults: []
+        };
+
+        // تهيئة الحقول والأكواد المبدئية
+        QUESTIONS.forEach(q => {
+            if (!q.isFileCreationTask) {
+                state.slots[q.id] = {};
+                q.lines.forEach(line => {
+                    const matches = [...line.matchAll(/\{\{slot:([^|]+)\|[^|]+\|\d+\}\}/g)];
+                    matches.forEach(m => {
+                        state.slots[q.id][m[1]] = "";
+                    });
+                });
+                state.codes[q.id] = buildFullCode(q);
+                state.outputs[q.id] = "";
+            }
+        });
+
+        function buildFullCode(q) {
+            if (q.isFileCreationTask) return "";
+            return q.lines.map(line => {
+                return line.replace(/\{\{slot:([^|]+)\|[^|]+\|\d+\}\}/g, (_, slotId) => {
+                    return (state.slots[q.id] && state.slots[q.id][slotId]) ? state.slots[q.id][slotId] : "";
+                });
+            }).join('\n');
+        }
+
+        // ==========================================
+        // 2. بناء واجهة الأسئلة ومحرر PyCharm بحقول الإكمال المخصصة
+        // ==========================================
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            QUESTIONS.forEach(q => {
+                const card = document.createElement('article');
+                card.id = `question-card-${q.id}`;
+                card.className = "question-card bg-white rounded-3xl shadow-lg border border-purple-100 overflow-hidden";
+
+                if (q.isFileCreationTask) {
+                    // بطاقة السؤال الأول (زر تفاعلي لإنشاء وفتح ملف main.py داخل محاكي PyCharm)
+                    card.innerHTML = `
+                        <div class="p-5 sm:p-6 bg-gradient-to-l from-slate-50 to-teal-50/40 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-2xl bg-gradient-to-br ${q.badgeColor} text-white font-black text-lg flex items-center justify-center shadow-md shrink-0">
+                                    ${q.id}
+                                </span>
+                                <div>
+                                    <span class="text-xs font-extrabold text-teal-600">السؤال الأول</span>
+                                    <h3 class="text-base sm:text-lg font-extrabold text-slate-800">${q.title}</h3>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="status-badge-${q.id}" class="hidden px-3 py-1 rounded-full text-xs font-extrabold"></span>
+                                <span class="bg-amber-100 text-amber-800 border border-amber-300 px-3.5 py-1.5 rounded-xl text-xs font-black">
+                                    الدرجة: ${q.maxScore} درجة
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="p-5 sm:p-6 space-y-4">
+                            <p class="text-xs sm:text-sm text-slate-600 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="info" class="w-4 h-4 text-teal-500 shrink-0"></i>
+                                <span>${q.hint}</span>
+                            </p>
+
+                            <div class="rounded-2xl overflow-hidden border-2 border-pycharm-border shadow-xl bg-pycharm-bg text-pycharm-text" dir="ltr">
+                                <div class="bg-pycharm-header px-4 py-2.5 border-b border-pycharm-border flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                        <span class="ml-2 text-xs font-code font-semibold text-slate-300">PyCharm — PythonProject</span>
+                                    </div>
+                                    <span class="text-[11px] font-code text-slate-400">File &gt; New &gt; Python File</span>
+                                </div>
+
+                                <div class="p-6 flex flex-col items-center justify-center space-y-4 bg-[#1e1f22]">
+                                    <div class="w-full max-w-md bg-[#2b2d30] border border-[#43454a] rounded-xl p-5 shadow-2xl space-y-4 text-center">
+                                        <div class="flex items-center justify-center gap-2.5 border-b border-[#393b40] pb-3">
+                                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                                <path d="M12 2C6.48 2 7 4.38 7 4.38V7h5v1H5.5S2 7.6 2 12.5 5 17 5 17h2v-2.5S6.88 12 9.5 12h4c2.2 0 2.5-1.8 2.5-2.5v-5S16.4 2 12 2zm-2.25 1.5a.75.75 0 110 1.5.75.75 0 010-1.5z" fill="#3776AB"/>
+                                                <path d="M12 22c5.52 0 5-2.38 5-2.38V17h-5v-1h6.5s3.5.4 3.5-4.5S19 7 19 7h-2v2.5s.12 2.5-2.5 2.5h-4C8.3 12 8 13.8 8 14.5v5S7.6 22 12 22zm2.25-1.5a.75.75 0 110-1.5.75.75 0 010 1.5z" fill="#FFD43B"/>
+                                            </svg>
+                                            <span class="font-code font-bold text-sm text-white">New Python File</span>
+                                        </div>
+                                        
+                                        <button id="btn-create-main-py" onclick="createMainPythonFile()" class="w-full bg-gradient-to-r from-[#3574f0] to-[#499c54] hover:opacity-95 text-white font-cairo text-sm font-extrabold px-5 py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2" dir="rtl">
+                                            <span>✨ إنشاء وفتح ملف main.py في PyCharm</span>
+                                        </button>
+
+                                        <div id="q1-file-feedback" class="text-xs font-code text-emerald-300 hidden flex items-center justify-center gap-2 bg-emerald-950/60 border border-emerald-700/70 p-3 rounded-lg" dir="rtl">
+                                            <span>✓</span>
+                                            <span id="q1-file-feedback-text">تم إنشاء وفتح ملف main.py بنجاح داخل بيئة PyCharm!</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="feedback-box-${q.id}" class="hidden rounded-xl p-3 text-xs sm:text-sm font-bold"></div>
+                        </div>
+                    `;
+                } else {
+                    const gutterHtml = q.lines.map((_, idx) => `<div>${idx + 1}</div>`).join('');
+                    const linesHtml = q.lines.map(line => renderInteractiveCodeLine(q.id, line)).join('');
+
+                    const wrongCodeBox = q.referenceWrongCode ? `
+                        <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 text-xs space-y-1.5">
+                            <div class="font-extrabold text-rose-800 flex items-center gap-1.5">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600"></i>
+                                <span>الكود الأصلي الذي يحتوي على أخطاء برمجية (للمقارنة):</span>
+                            </div>
+                            <pre dir="ltr" class="bg-rose-950 text-rose-200 font-code p-2.5 rounded-lg overflow-x-auto text-xs leading-relaxed">${escapeHtml(q.referenceWrongCode)}</pre>
+                        </div>
+                    ` : '';
+
+                    card.innerHTML = `
+                        <div class="p-5 sm:p-6 bg-gradient-to-l from-slate-50 to-purple-50/40 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-2xl bg-gradient-to-br ${q.badgeColor} text-white font-black text-lg flex items-center justify-center shadow-md shrink-0">
+                                    ${q.id}
+                                </span>
+                                <div>
+                                    <span class="text-xs font-extrabold text-purple-600">السؤال ${q.id}</span>
+                                    <h3 class="text-base sm:text-lg font-extrabold text-slate-800">${q.title}</h3>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="status-badge-${q.id}" class="hidden px-3 py-1 rounded-full text-xs font-extrabold"></span>
+                                <span class="bg-amber-100 text-amber-800 border border-amber-300 px-3.5 py-1.5 rounded-xl text-xs font-black">
+                                    الدرجة: ${q.maxScore} درجات
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="p-5 sm:p-6 space-y-4">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <p class="text-xs sm:text-sm text-slate-600 font-semibold flex items-center gap-1.5">
+                                    <i data-lucide="lightbulb" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                                    <span>${q.hint}</span>
+                                </p>
+                                <span class="text-[11px] font-bold bg-pink-50 text-pink-700 border border-pink-200 px-2.5 py-1 rounded-lg">
+                                    اكتبي الإجابة داخل المربع المتقطع داخل الكود ↓
+                                </span>
+                            </div>
+
+                            ${wrongCodeBox}
+
+                            <!-- نافذة محاكي PyCharm -->
+                            <div class="rounded-2xl overflow-hidden border-2 border-pycharm-border shadow-xl bg-pycharm-bg">
+                                <div class="bg-pycharm-header px-4 py-2.5 border-b border-pycharm-border flex flex-wrap items-center justify-between gap-2" dir="ltr">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 bg-[#1e1f22] px-3 py-1 rounded-t-lg border-t-2 border-[#3574f0] text-xs font-code text-white">
+                                            <span class="text-amber-400 font-bold">py</span>
+                                            <span>${q.fileName}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="resetQuestionCode(${q.id})" title="مسح الحقول" class="bg-[#393b40] hover:bg-[#4b4d53] text-slate-200 text-xs font-cairo font-bold px-3 py-1.5 rounded-lg transition">
+                                            ↺ مسح الحقول
+                                        </button>
+                                        <button onclick="runQuestionCode(${q.id})" class="bg-[#499c54] hover:bg-[#3d8547] text-white text-xs font-cairo font-extrabold px-4 py-1.5 rounded-lg shadow transition flex items-center gap-1.5">
+                                            <span>▶ تشغيل الكود</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="pycharm-editor-wrapper">
+                                    <div class="pycharm-gutter">${gutterHtml}</div>
+                                    <div class="code-lines-container">${linesHtml}</div>
+                                </div>
+
+                                <div class="bg-[#18191c] border-t border-pycharm-border p-3.5" dir="ltr">
+                                    <div class="flex items-center justify-between text-[11px] font-code text-slate-400 mb-1.5">
+                                        <span class="flex items-center gap-1.5">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                            <span>Console Output:</span>
+                                        </span>
+                                        <button onclick="clearConsole(${q.id})" class="hover:text-white transition">Clear</button>
+                                    </div>
+                                    <pre id="console-${q.id}" class="font-code text-xs sm:text-sm text-emerald-300 whitespace-pre-wrap min-h-[28px] leading-relaxed">اكتبي الإجابة في المربعات المخصصة أعلاه ثم اضغطي ▶ تشغيل الكود...</pre>
+                                </div>
+                            </div>
+
+                            <!-- مربع التغذية الراجعة وتوضيح الإجابة الصحيحة عند الخطأ -->
+                            <div id="feedback-box-${q.id}" class="hidden rounded-xl p-3.5 text-xs sm:text-sm font-bold"></div>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(card);
+            });
+
+            lucide.createIcons();
+            updateAnsweredCounter();
+        }
+
+        function renderInteractiveCodeLine(qId, lineTemplate) {
+            const parts = lineTemplate.split(/(\{\{slot:[^}]+\}\})/g);
+            const renderedParts = parts.map(part => {
+                const match = part.match(/^\{\{slot:([^|]+)\|([^|]+)\|(\d+)\}\}$/);
+                if (match) {
+                    const slotId = match[1];
+                    const placeholder = match[2];
+                    const widthPx = parseInt(match[3], 10);
+                    const currentVal = (state.slots[qId] && state.slots[qId][slotId]) ? state.slots[qId][slotId] : "";
+                    return `<input type="text" 
+                        id="slot-${qId}-${slotId}" 
+                        data-qid="${qId}" 
+                        data-slotid="${slotId}"
+                        value="${escapeHtml(currentVal)}" 
+                        placeholder="${placeholder}" 
+                        style="min-width: ${widthPx}px; width: ${Math.max(widthPx, (currentVal.length + 3) * 9)}px;"
+                        spellcheck="false" 
+                        autocorrect="off" 
+                        autocapitalize="off"
+                        oninput="handleSlotInput(this, ${qId}, '${slotId}', ${widthPx})"
+                        onkeydown="handleSlotKeydown(event, ${qId})"
+                        class="code-slot-input" />`;
+                } else {
+                    return highlightPythonSegment(part);
+                }
+            }).join('');
+
+            return `<div class="code-line">${renderedParts}</div>`;
+        }
+
+        function highlightPythonSegment(segment) {
+            if (!segment) return "";
+            let escaped = escapeHtml(segment);
+            if (escaped.trim().startsWith('#')) {
+                return `<span class="tok-com">${escaped}</span>`;
+            }
+
+            const tokens = [];
+            escaped = escaped.replace(/('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")/g, (match) => {
+                const id = `__TOK_${tokens.length}__`;
+                tokens.push(`<span class="tok-str">${match}</span>`);
+                return id;
+            });
+
+            escaped = escaped.replace(/\b(if|elif|else|while|for|in|break|continue|def|return|try|except|finally|import|from|as|True|False|None|and|or|not|is)\b/g, '<span class="tok-kw">$1</span>');
+            escaped = escaped.replace(/\b(print|input|len|int|float|str|range|upper|lower|type)\b/g, '<span class="tok-fn">$1</span>');
+            escaped = escaped.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
+
+            tokens.forEach((tok, idx) => {
+                escaped = escaped.replace(`__TOK_${idx}__`, tok);
+            });
+
+            return escaped;
+        }
+
+        // ==========================================
+        // 3. وظائف التفاعل مع أماكن الإكمال المخصصة
+        // ==========================================
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function handleSlotInput(inputEl, qId, slotId, baseWidth) {
+            const val = inputEl.value;
+            state.slots[qId][slotId] = val;
+
+            const dynamicWidth = Math.max(baseWidth, (val.length + 3) * 9.5);
+            inputEl.style.width = `${dynamicWidth}px`;
+
+            inputEl.classList.remove('slot-correct', 'slot-wrong');
+            const fbBox = document.getElementById(`feedback-box-${qId}`);
+            if (fbBox) fbBox.classList.add('hidden');
+
+            const q = QUESTIONS.find(item => item.id === qId);
+            if (q) {
+                state.codes[qId] = buildFullCode(q);
+            }
+            updateAnsweredCounter();
+        }
+
+        function handleSlotKeydown(e, qId) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                runQuestionCode(qId);
+            }
+        }
+
+        function resetQuestionCode(id) {
+            const q = QUESTIONS.find(item => item.id === id);
+            if (!q || q.isFileCreationTask) return;
+
+            Object.keys(state.slots[id]).forEach(slotId => {
+                state.slots[id][slotId] = "";
+                const inputEl = document.getElementById(`slot-${id}-${slotId}`);
+                if (inputEl) {
+                    inputEl.value = "";
+                    inputEl.classList.remove('slot-correct', 'slot-wrong');
+                }
+            });
+
+            const fbBox = document.getElementById(`feedback-box-${id}`);
+            if (fbBox) fbBox.classList.add('hidden');
+
+            state.codes[id] = buildFullCode(q);
+            clearConsole(id);
+            updateAnsweredCounter();
+            showToast(`تم مسح حقول الإكمال في السؤال ${id}.`, "info");
+        }
+
+        function clearConsole(id) {
+            const consoleEl = document.getElementById(`console-${id}`);
+            if (consoleEl) {
+                consoleEl.className = "font-code text-xs sm:text-sm text-emerald-300 whitespace-pre-wrap min-h-[28px] leading-relaxed";
+                consoleEl.textContent = "اكتبي الإجابة في المربعات المخصصة أعلاه ثم اضغطي ▶ تشغيل الكود...";
+            }
+        }
+
+        // ==========================================
+        // 4. وظائف السؤال الأول (إنشاء وفتح ملف main.py)
+        // ==========================================
+        function createMainPythonFile() {
+            state.q1FileOpened = true;
+            state.q1CreatedFile = "main.py";
+
+            const btn = document.getElementById('btn-create-main-py');
+            const feedback = document.getElementById('q1-file-feedback');
+            const fbBox = document.getElementById('feedback-box-1');
+
+            if (btn) {
+                btn.innerHTML = '<span>✅ ملف main.py مفتوح وجاهز للعمل</span>';
+                btn.classList.remove('from-[#3574f0]', 'to-[#499c54]');
+                btn.classList.add('bg-emerald-700');
+            }
+            if (feedback) feedback.classList.remove('hidden');
+            if (fbBox) fbBox.classList.add('hidden');
+
+            updateAnsweredCounter();
+            showToast("أحسنتِ! تم إنشاء وفتح ملف main.py بنجاح (1/1 درجة).", "success");
+        }
+
+        // ==========================================
+        // 5. محرك تشغيل Python الفعلي في المتصفح (Skulpt)
+        // ==========================================
+        function promptUserForPythonInput(promptText) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('python-input-modal');
+                const promptEl = document.getElementById('python-input-prompt');
+                const inputEl = document.getElementById('python-input-field');
+                const submitBtn = document.getElementById('python-input-submit');
+
+                promptEl.textContent = promptText || "Enter input:";
+                inputEl.value = "";
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => inputEl.focus(), 50);
+
+                const cleanupAndResolve = () => {
+                    const val = inputEl.value;
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    submitBtn.removeEventListener('click', cleanupAndResolve);
+                    inputEl.removeEventListener('keydown', keyHandler);
+                    resolve(val);
+                };
+
+                const keyHandler = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        cleanupAndResolve();
+                    }
+                };
+
+                submitBtn.addEventListener('click', cleanupAndResolve);
+                inputEl.addEventListener('keydown', keyHandler);
+            });
+        }
+
+        function preprocessPythonCode(code) {
+            return code.replace(/f(['"])(.*?)\1/g, (match, quote, content) => {
+                const exprs = [];
+                const template = content.replace(/\{([^}]+)\}/g, (_, expr) => {
+                    exprs.push(expr);
+                    return "{}";
+                });
+                if (exprs.length === 0) return `${quote}${content}${quote}`;
+                return `${quote}${template}${quote}.format(${exprs.join(', ')})`;
+            });
+        }
+
+        async function executePython(code, customInputs = null) {
+            let outputBuffer = "";
+            let inputIndex = 0;
+            const processedCode = preprocessPythonCode(code);
+
+            Sk.configure({
+                output: function (text) {
+                    outputBuffer += text;
+                },
+                read: function (x) {
+                    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+                        throw "File not found: '" + x + "'";
+                    }
+                    return Sk.builtinFiles["files"][x];
+                },
+                inputfun: function (prompt) {
+                    if (customInputs !== null) {
+                        const val = customInputs[inputIndex] !== undefined ? customInputs[inputIndex] : "10";
+                        inputIndex++;
+                        outputBuffer += (prompt || "") + val + "\n";
+                        return val;
+                    } else {
+                        return promptUserForPythonInput(prompt).then(val => {
+                            outputBuffer += (prompt || "") + val + "\n";
+                            return val;
+                        });
+                    }
+                },
+                inputfunTakesPrompt: true,
+                execLimit: 3000
+            });
+
+            try {
+                await Sk.misceval.asyncToPromise(() => Sk.importMainWithBody("<stdin>", false, processedCode, true));
+                return { success: true, output: outputBuffer };
+            } catch (err) {
+                return { success: false, output: outputBuffer, error: err.toString() };
+            }
+        }
+
+        async function runQuestionCode(id) {
+            const q = QUESTIONS.find(item => item.id === id);
+            const code = buildFullCode(q);
+            state.codes[id] = code;
+
+            const consoleEl = document.getElementById(`console-${id}`);
+            consoleEl.className = "font-code text-xs sm:text-sm text-amber-300 whitespace-pre-wrap min-h-[28px] leading-relaxed";
+            consoleEl.textContent = "Running...";
+
+            const res = await executePython(code, null);
+            if (res.success) {
+                consoleEl.className = "font-code text-xs sm:text-sm text-emerald-300 whitespace-pre-wrap min-h-[28px] leading-relaxed";
+                const finalOut = res.output.trim() === "" ? "Process finished with exit code 0 (تم التنفيذ بنجاح)" : res.output;
+                consoleEl.textContent = finalOut;
+                state.outputs[id] = finalOut;
+            } else {
+                consoleEl.className = "font-code text-xs sm:text-sm text-rose-400 whitespace-pre-wrap min-h-[28px] leading-relaxed";
+                consoleEl.textContent = `خطأ برمجي (تأكدي من إكمال الحقول بشكل صحيح):\n${res.error}`;
+                state.outputs[id] = `خطأ: ${res.error}`;
+            }
+        }
+
+        // ==========================================
+        // 6. نظام التقييم والتصحيح التلقائي الدقيق (40 درجة)
+        // ==========================================
+        async function evaluateSingleQuestion(q) {
+            if (q.id === 1) {
+                const isValid = state.q1FileOpened === true;
+                return {
+                    earned: isValid ? 1 : 0,
+                    passed: isValid,
+                    note: isValid ? "تم إنشاء وفتح ملف main.py بنجاح." : "اضغطي على زر (إنشاء وفتح ملف main.py) داخل محاكي PyCharm."
+                };
+            }
+
+            const code = buildFullCode(q).trim();
+            state.codes[q.id] = code;
+            const cleanNoComments = code.replace(/#.*$/gm, '').trim();
+
+            switch (q.id) {
+                case 2: {
+                    const testCode = `${code}\nprint("__NAME_VAL__:" + str(name))`;
+                    const res = await executePython(testCode, []);
+                    const match = res.output.match(/__NAME_VAL__:(.+)/);
+                    const hasName = res.success && match && match[1].trim().length > 0;
+                    state.outputs[2] = res.success ? (res.output.replace(/__NAME_VAL__:.+/, '').trim() || `name = "${match ? match[1].trim() : ''}"`) : res.error;
+                    return {
+                        earned: hasName ? 3 : 0,
+                        passed: hasName,
+                        note: hasName ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: اكتبي name في المربع الأول واسمك في المربع الثاني (مثال: name = 'سارة').`
+                    };
+                }
+
+                case 3: {
+                    const res = await executePython(code, []);
+                    state.outputs[3] = res.success ? res.output.trim() : res.error;
+                    const lines = res.output.trim().split(/\s+/);
+                    const has12 = lines.includes("12");
+                    const has27 = lines.includes("27");
+                    const has3 = lines.includes("3") || lines.includes("3.0");
+                    const passed = res.success && has12 && has27 && has3;
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: (+) للجمع، (*) للضرب، (/) للقسمة.`
+                    };
+                }
+
+                case 4: {
+                    const res = await executePython(code, []);
+                    state.outputs[4] = res.success ? res.output.trim() : res.error;
+                    const passed = res.success && res.output.trim() === "B" && /fruit\s*\[\s*0\s*\]/.test(cleanNoComments);
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: 0 (لتصبح التعليمة print(fruit[0])).`
+                    };
+                }
+
+                case 5: {
+                    const res = await executePython(code, []);
+                    state.outputs[5] = res.success ? res.output.trim() : res.error;
+                    const passed = res.success && res.output.trim() === "9" && /len\s*\(\s*Bug\s*\)/.test(cleanNoComments);
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: len(Bug) (لتصبح التعليمة print(len(Bug))).`
+                    };
+                }
+
+                case 6: {
+                    const res = await executePython(code, []);
+                    state.outputs[6] = res.success ? res.output.trim() : res.error;
+                    const passed = res.success && res.output.trim() === "HAPPY" && /mood\.upper\s*\(\s*\)/.test(cleanNoComments);
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: upper (لتصبح التعليمة print(mood.upper())).`
+                    };
+                }
+
+                case 7: {
+                    const resLow = await executePython(code, ["10"]);
+                    const resHigh = await executePython(code, ["15"]);
+                    state.outputs[7] = resLow.success ? `عند إدخال 10: ${resLow.output.trim().split('\n').pop()}` : resLow.error;
+                    const passed = resLow.success && resHigh.success &&
+                        resLow.output.toLowerCase().includes("i will buy the dress") &&
+                        resHigh.output.toLowerCase().includes("its too expensive");
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: if price < 12`
+                    };
+                }
+
+                case 8: {
+                    const res95 = await executePython(code, ["95"]);
+                    const res75 = await executePython(code, ["75"]);
+                    const res40 = await executePython(code, ["40"]);
+                    state.outputs[8] = res95.success ? `عند إدخال 95: ${res95.output.trim().split('\n').pop()}` : res95.error;
+                    const passed = res95.success && res75.success && res40.success &&
+                        res95.output.toLowerCase().includes("you are excellent") &&
+                        res75.output.toLowerCase().includes("good you pass") &&
+                        res40.output.toLowerCase().includes("you fail");
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: elif في المربع الأول و grade >= 90 في المربع الثاني.`
+                    };
+                }
+
+                case 9: {
+                    const res = await executePython(code, []);
+                    state.outputs[9] = res.success ? res.output.trim() : res.error;
+                    const outLines = res.output.trim().split(/\s+/);
+                    const expected = ["8", "7", "6", "5", "4", "the", "end"];
+                    const passed = res.success && outLines.join(" ") === expected.join(" ");
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: while في المربع الأول و break في المربع الثاني.`
+                    };
+                }
+
+                case 10: {
+                    const res = await executePython(code, []);
+                    state.outputs[10] = res.success ? res.output.trim() : res.error;
+                    const out = res.output.trim();
+                    const passed = res.success && out.includes("5*1=5") && out.includes("5*10=50") && !out.includes("6*1=6");
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: 5 في المربع الأول و 10 في المربع الثاني.`
+                    };
+                }
+
+                case 11: {
+                    const res = await executePython(code, []);
+                    state.outputs[11] = res.success ? res.output.trim() : res.error;
+                    const outLines = res.output.trim().split(/\s+/);
+                    const passed = res.success && outLines.join("") === "red" && outLines.length === 3;
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: ch في المربع الأول و color في المربع الثاني.`
+                    };
+                }
+
+                case 12: {
+                    const res = await executePython(code, []);
+                    state.outputs[12] = res.success ? res.output.trim() : res.error;
+                    const outLines = res.output.trim().split(/\s+/);
+                    const passed = res.success && outLines.join(",") === "3,4,5,6";
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: range في المربع الأول و 3 في المربع الثاني.`
+                    };
+                }
+
+                case 13: {
+                    const res = await executePython(code, []);
+                    state.outputs[13] = res.success ? res.output.trim() : res.error;
+                    const passed = res.success && res.output.trim().toLowerCase().includes("i will buy the dress");
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: (:) في المربع الأول، print في المربع الثاني، و ) في المربع الثالث.`
+                    };
+                }
+
+                case 14: {
+                    const resValid = await executePython(code, ["120"]);
+                    const resInvalid = await executePython(code, ["abc"]);
+                    state.outputs[14] = resInvalid.success ? `عند إدخال نص: ${resInvalid.output.trim().split('\n').pop()}` : resInvalid.error;
+                    const passed = resValid.success && resInvalid.success &&
+                        resValid.output.includes("2") &&
+                        resInvalid.output.toLowerCase().includes("please enter number");
+                    return {
+                        earned: passed ? 3 : 0,
+                        passed,
+                        note: passed ? "إجابة صحيحة وممتازة!" : `الإجابة الصحيحة: try في المربع الأول و except ValueError (أو except) في المربع الثاني.`
+                    };
+                }
+
+                default:
+                    return { earned: 0, passed: false, note: "" };
+            }
+        }
+
+        async function evaluateAllQuestions() {
+            const studentName = document.getElementById('student-name').value.trim();
+            const studentClass = document.getElementById('student-class').value.trim();
+
+            if (!studentName) {
+                showToast("يرجى كتابة اسم المتعلمة في الأعلى قبل تقييم الاختبار!", "warning");
+                document.getElementById('student-name').focus();
+                document.getElementById('student-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            let totalEarned = 0;
+            const results = [];
+
+            for (const q of QUESTIONS) {
+                const evalRes = await evaluateSingleQuestion(q);
+                totalEarned += evalRes.earned;
+                results.push({ ...q, ...evalRes });
+
+                // تلوين حقول الإكمال بالأخضر أو الأحمر
+                if (!q.isFileCreationTask && state.slots[q.id]) {
+                    Object.keys(state.slots[q.id]).forEach(slotId => {
+                        const inputEl = document.getElementById(`slot-${q.id}-${slotId}`);
+                        if (inputEl) {
+                            inputEl.classList.remove('slot-correct', 'slot-wrong');
+                            inputEl.classList.add(evalRes.passed ? 'slot-correct' : 'slot-wrong');
+                        }
+                    });
+                }
+
+                // تحديث شارة الحالة على بطاقة كل سؤال
+                const badge = document.getElementById(`status-badge-${q.id}`);
+                if (badge) {
+                    badge.classList.remove('hidden');
+                    if (evalRes.passed) {
+                        badge.className = "px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300";
+                        badge.textContent = `✓ صحيحة (${evalRes.earned}/${q.maxScore})`;
+                    } else {
+                        badge.className = "px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-300";
+                        badge.textContent = `✕ خطأ (0/${q.maxScore})`;
+                    }
+                }
+
+                // عرض مربع التغذية الراجعة أسفل كل سؤال لتوضيح الإجابة الصحيحة عند الخطأ
+                const fbBox = document.getElementById(`feedback-box-${q.id}`);
+                if (fbBox) {
+                    fbBox.classList.remove('hidden');
+                    if (evalRes.passed) {
+                        fbBox.className = "rounded-xl p-3 text-xs sm:text-sm font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-2";
+                        fbBox.innerHTML = `<span>✅</span><span>${evalRes.note}</span>`;
+                    } else {
+                        fbBox.className = "rounded-xl p-3 text-xs sm:text-sm font-bold bg-rose-50 text-rose-800 border border-rose-200 flex items-center gap-2";
+                        fbBox.innerHTML = `<span>💡</span><span>${evalRes.note}</span>`;
+                    }
+                }
+            }
+
+            state.evaluationResults = results;
+
+            const dashboard = document.getElementById('results-dashboard');
+            dashboard.classList.remove('hidden');
+
+            const studentLab = document.getElementById('student-lab').value.trim() || "غير محدد";
+            const studentPc = document.getElementById('student-pc').value.trim() || "غير محدد";
+
+            document.getElementById('res-student-title').textContent = `المتعلمة: ${studentName}`;
+            document.getElementById('res-student-meta').textContent = `الصف: ${studentClass || 'العاشر'} | المختبر: ${studentLab} | رقم الجهاز: ${studentPc}`;
+            document.getElementById('total-earned-score').textContent = totalEarned;
+            
+            const percentage = Math.round((totalEarned / 40) * 100);
+            document.getElementById('total-percentage').textContent = `${percentage}%`;
+
+            const feedbackEl = document.getElementById('res-feedback-msg');
+            if (totalEarned >= 36) {
+                feedbackEl.textContent = "ممتازة ومبدعة! أداء برمجي رائع جداً، بارك الله فيكِ.";
+                feedbackEl.className = "text-sm font-extrabold text-emerald-700 pt-1";
+            } else if (totalEarned >= 28) {
+                feedbackEl.textContent = "جيد جداً! يمكنك مراجعة الأسئلة المحددة لرفع درجتك أكثر.";
+                feedbackEl.className = "text-sm font-extrabold text-teal-700 pt-1";
+            } else {
+                feedbackEl.textContent = "راجعي الإجابات الصحيحة الموضحة أسفل الأسئلة الحمراء ثم أعيدي المحاولة.";
+                feedbackEl.className = "text-sm font-extrabold text-amber-700 pt-1";
+            }
+
+            const tbody = document.getElementById('grades-table-body');
+            tbody.innerHTML = results.map(r => `
+                <tr class="${r.passed ? 'hover:bg-emerald-50/40' : 'bg-rose-50/30 hover:bg-rose-50/60'}">
+                    <td class="p-3 text-center font-bold text-slate-700">${r.id}</td>
+                    <td class="p-3 text-slate-800">${r.rubricItem}</td>
+                    <td class="p-3 text-center font-bold text-slate-600">${r.maxScore}</td>
+                    <td class="p-3 text-center font-black ${r.passed ? 'text-emerald-600' : 'text-rose-600'}">${r.earned}</td>
+                    <td class="p-3 text-center">
+                        ${r.passed 
+                            ? '<span class="inline-block bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full text-xs font-extrabold">صحيحة ✓</span>' 
+                            : `<span class="inline-block bg-rose-100 text-rose-800 px-2.5 py-0.5 rounded-full text-xs font-extrabold">تحتاج تصحيح ✕</span>`
+                        }
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('table-total-earned').textContent = totalEarned;
+            document.getElementById('table-total-status').textContent = `${percentage}% (${totalEarned >= 20 ? 'ناجحة' : 'تحتاج تحسين'})`;
+
+            dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showToast(`تم تقييم جميع الأسئلة بنجاح! درجتك هي ${totalEarned} من 40.`, "success");
+        }
+
+        // ==========================================
+        // 7. تصدير التقرير والحلول كملف PDF
+        // ==========================================
+        async function exportToPDF() {
+            const studentName = document.getElementById('student-name').value.trim();
+            if (!studentName) {
+                showToast("يرجى كتابة اسم المتعلمة في الأعلى قبل حفظ ملف PDF!", "warning");
+                document.getElementById('student-name').focus();
+                return;
+            }
+
+            await evaluateAllQuestions();
+
+            const studentClass = document.getElementById('student-class').value.trim() || "العاشر";
+            const studentLab = document.getElementById('student-lab').value.trim() || "---";
+            const studentPc = document.getElementById('student-pc').value.trim() || "---";
+            const totalEarned = state.evaluationResults.reduce((acc, r) => acc + r.earned, 0);
+
+            document.getElementById('pdf-name').textContent = studentName;
+            document.getElementById('pdf-class').textContent = studentClass;
+            document.getElementById('pdf-lab').textContent = studentLab;
+            document.getElementById('pdf-pc').textContent = studentPc;
+            document.getElementById('pdf-score').textContent = totalEarned;
+
+            const pdfGradesBody = document.getElementById('pdf-grades-body');
+            pdfGradesBody.innerHTML = state.evaluationResults.map(r => `
+                <tr>
+                    <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: 700;">${r.id}</td>
+                    <td style="padding: 6px; border: 1px solid #cbd5e1;">${r.rubricItem}</td>
+                    <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">${r.maxScore}</td>
+                    <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center; font-weight: 800; color: ${r.passed ? '#059669' : '#e11d48'};">${r.earned}</td>
+                    <td style="padding: 6px; border: 1px solid #cbd5e1; text-align: center;">${r.passed ? 'صحيحة' : 'تحتاج مراجعة'}</td>
+                </tr>
+            `).join('') + `
+                <tr style="background: #f3e8ff; font-weight: 900;">
+                    <td colspan="2" style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">المجموع الكلي</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">40</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center; color: #be185d;">${totalEarned}</td>
+                    <td style="padding: 8px; border: 1px solid #cbd5e1; text-align: center;">${Math.round((totalEarned/40)*100)}%</td>
+                </tr>
+            `;
+
+            const pdfCodeDetails = document.getElementById('pdf-code-details');
+            pdfCodeDetails.innerHTML = state.evaluationResults.map(r => {
+                const codeText = r.isFileCreationTask 
+                    ? (state.q1FileOpened ? 'تم إنشاء وفتح ملف main.py بنجاح' : 'لم يتم فتح الملف')
+                    : (state.codes[r.id] || '');
+                const outText = r.isFileCreationTask ? '' : (state.outputs[r.id] || '');
+                return `
+                    <div style="border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 10px; padding: 10px; page-break-inside: avoid;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 6px; color: #1e293b;">
+                            <span>س${r.id}: ${r.title}</span>
+                            <span style="color: ${r.passed ? '#059669' : '#e11d48'};">[الدرجة: ${r.earned}/${r.maxScore}]</span>
+                        </div>
+                        <pre dir="ltr" style="background: #1e1f22; color: #f8fafc; padding: 8px 10px; border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 11px; white-space: pre-wrap; margin: 0;">${escapeHtml(codeText)}</pre>
+                        ${outText ? `<div dir="ltr" style="background: #f1f5f9; color: #334155; padding: 5px 8px; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 10px; margin-top: 4px;">Output: ${escapeHtml(outText)}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const wrapper = document.getElementById('pdf-export-wrapper');
+            const element = document.getElementById('pdf-content');
+            wrapper.style.display = 'block';
+
+            showToast("جاري تجهيز وتنزيل ملف الـ PDF...", "info");
+
+            const safeFileName = `اختبار_تقنية_المعلومات_${studentName.replace(/\s+/g, '_')}.pdf`;
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: safeFileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            try {
+                await html2pdf().set(opt).from(element).save();
+                showToast("تم حفظ ملف الـ PDF بنجاح! يمكنك الآن إرساله إلى بريد المعلمة.", "success");
+            } catch (e) {
+                console.error(e);
+                window.print();
+            } finally {
+                wrapper.style.display = 'none';
+            }
+        }
+
+        // ==========================================
+        // 8. إرسال النتيجة لبريد المعلمة + تحميل نسخة HTML
+        // ==========================================
+        async function sendEmailToTeacher() {
+            const studentName = document.getElementById('student-name').value.trim();
+            if (!studentName) {
+                showToast("يرجى كتابة اسم المتعلمة في الأعلى أولاً!", "warning");
+                document.getElementById('student-name').focus();
+                return;
+            }
+
+            if (state.evaluationResults.length === 0) {
+                await evaluateAllQuestions();
+            }
+
+            const studentClass = document.getElementById('student-class').value.trim() || "العاشر";
+            const studentLab = document.getElementById('student-lab').value.trim() || "---";
+            const studentPc = document.getElementById('student-pc').value.trim() || "---";
+            const totalEarned = state.evaluationResults.reduce((acc, r) => acc + r.earned, 0);
+
+            const teacherEmail = "T273092400282@moe.edu.kw";
+            const subject = encodeURIComponent(`تسليم اختبار نهاية الفصل الأول (تقنية المعلومات - عاشر) | ${studentName}`);
+
+            let summaryLines = [
+                `السلام عليكم ورحمة الله وبركاته معلمتي الفاضلة / هند الراشد،`,
+                ``,
+                `مرفق لسيادتكم نتيجة وحلول اختبار نهاية الفصل الدراسي الأول لمادة تقنية المعلومات (الصف العاشر):`,
+                `----------------------------------------`,
+                `• اسم المتعلمة: ${studentName}`,
+                `• الصف / الفصل: ${studentClass}`,
+                `• المختبر: ${studentLab} | رقم الجهاز: ${studentPc}`,
+                `• الدرجة المستحقة: ${totalEarned} من 40 درجة (${Math.round((totalEarned/40)*100)}%)`,
+                `----------------------------------------`,
+                `تفاصيل الحلول والدرجات:`,
+                ...state.evaluationResults.map(r => {
+                    const ans = r.isFileCreationTask ? (state.q1FileOpened ? 'main.py' : 'لم يُفتح') : (state.codes[r.id] || '').replace(/\n/g, ' | ');
+                    return `س${r.id} [${r.earned}/${r.maxScore}]: ${ans}`;
+                }),
+                ``,
+                `*(ملاحظة للطالبة: يرجى إرفاق ملف الـ PDF الذي تم تنزيله قبل الضغط على إرسال)*`
+            ];
+
+            const body = encodeURIComponent(summaryLines.join('\n'));
+            showToast("سيتم فتح تطبيق البريد الإلكتروني لإرسال النتيجة إلى T273092400282@moe.edu.kw", "info");
+            window.location.href = `mailto:${teacherEmail}?subject=${subject}&body=${body}`;
+        }
+
+        function downloadHtmlActivity() {
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "اختبار_تقنية_المعلومات_عاشر_PyCharm.html";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("تم تحميل نسخة HTML من النشاط التفاعلي بنجاح!", "success");
+        }
+
+        function copyTeacherEmail() {
+            const email = "T273092400282@moe.edu.kw";
+            const tempInput = document.createElement("input");
+            tempInput.value = email;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            showToast("تم نسخ بريد المعلمة: T273092400282@moe.edu.kw", "success");
+        }
+
+        // ==========================================
+        // 9. أدوات مساعدة للواجهة
+        // ==========================================
+        function updateAnsweredCounter() {
+            let count = 0;
+            QUESTIONS.forEach(q => {
+                if (q.isFileCreationTask) {
+                    if (state.q1FileOpened) count++;
+                } else if (state.slots[q.id]) {
+                    const hasAnyInput = Object.values(state.slots[q.id]).some(v => v && v.trim().length > 0);
+                    if (hasAnyInput) count++;
+                }
+            });
+            const el = document.getElementById('nav-answered-count');
+            if (el) el.textContent = count;
+        }
+
+        function scrollToEvaluation() {
+            document.getElementById('evaluation-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const styles = {
+                success: "bg-emerald-600 text-white border-emerald-400",
+                warning: "bg-amber-500 text-white border-amber-300",
+                info: "bg-purple-700 text-white border-purple-400"
+            };
+
+            toast.className = `${styles[type] || styles.info} border px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-bold pointer-events-auto transition-all duration-300 transform translate-y-0 opacity-100`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(10px)";
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderQuestions();
+        });
+    </script>
+</body>
+</html>
